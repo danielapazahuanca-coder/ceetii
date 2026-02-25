@@ -1,0 +1,4 @@
+# Logs de PHP / XAMPP
+php/error_log
+**/error_log
+*.log
