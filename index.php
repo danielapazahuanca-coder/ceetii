@@ -195,6 +195,14 @@ include("php/header.php");
                             </a>
                         </div>
                     </div>
+                    <div class="col-md-4">
+                        <div class="main-box mb-dull" style="background-color: #8d191d;">
+                            <a href="inventario/activos.php">
+                                <i class="fa fa-archive fa-5x"></i>
+                                <h5>Inventario Activos</h5>
+                            </a>
+                        </div>
+                    </div>
                   
 
                 </div>
