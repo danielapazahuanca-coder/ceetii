@@ -23,21 +23,21 @@
             padding: 0;
         }
 
-        /* NAVBAR: Ahora más delgada y sin logo (porque ya está en el cuerpo) */
+        /* NAVBAR */
         .navbar-ceetii { 
             background-color: var(--rojo-elegante) !important;
-            padding: 10px 0; /* Más delgada */
+            padding: 10px 0;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
 
         .navbar-brand {
             font-weight: 500;
             letter-spacing: 1px;
-            font-size: 1rem; /* Más discreto */
+            font-size: 1rem;
             text-transform: uppercase;
         }
 
-        /* Estilos del cuerpo (Tarjetas y Tablas) */
+        /* Tarjetas y Tablas */
         .card-custom, .table-container, .card {
             background-color: #ffffff !important;
             border: 1px solid rgba(0,0,0,0.05) !important;
@@ -64,6 +64,24 @@
             border-radius: 6px;
             transition: all 0.3s ease;
         }
+
+        .pagination .page-link {
+            color: var(--rojo-elegante) !important;
+            border: 1px solid #dee2e6;
+            transition: all 0.3s ease;
+        }
+
+        .pagination .page-item.active .page-link {
+            background-color: var(--rojo-elegante) !important;
+            border-color: var(--rojo-elegante) !important;
+            color: white !important;
+        }
+
+        .pagination .page-link:hover {
+            background-color: #f8d7da !important;
+            color: var(--rojo-elegante) !important;
+            border-color: var(--rojo-elegante);
+        }
     </style>
 </head>
 <body>
@@ -71,8 +89,8 @@
 <nav class="navbar navbar-expand-lg navbar-dark navbar-ceetii mb-4">
     <div class="container">
         <a class="navbar-brand d-flex align-items-center" href="../index.php">
-            <span class="material-icons me-2" style="font-size: 1.2rem;">inventory</span>
-            VOLVER
+            <span class="material-icons me-2" style="font-size: 1.2rem;">arrow_back</span>
+            VOLVER AL SISTEMA
         </a>
         
         <div class="navbar-nav ms-auto">

@@ -7,11 +7,25 @@ $ver_precio = isset($_GET['col_precio']) || !isset($_GET['filtrar']);
 $ver_fecha = isset($_GET['col_fecha']) || !isset($_GET['filtrar']);
 $ver_obs = isset($_GET['col_obs']) || !isset($_GET['filtrar']);
 
+// Pedir datos a la api
 $url = "http://localhost/api_ceti/public/index.php/activos?buscar=" . urlencode($busqueda_texto) . "&ubicacion=" . urlencode($filtro_ubicacion);
 $response = @file_get_contents($url);
 $resultado = json_decode($response, true);
-$activos = $resultado['data'] ?? [];
+$todos_los_activos = $resultado['data'] ?? [];
 
+// logicaPaginacion
+$articulos_por_pagina = 10;
+$total_activos = count($todos_los_activos);
+$paginas_totales = ceil($total_activos / $articulos_por_pagina);
+$pagina_actual = isset($_GET['pagina']) ? (int)$_GET['pagina'] : 1;
+if ($pagina_actual < 1) $pagina_actual = 1;
+
+// Mostrar solo 10
+$indice_inicio = ($pagina_actual - 1) * $articulos_por_pagina;
+$activos = array_slice($todos_los_activos, $indice_inicio, $articulos_por_pagina);
+// ----------------------------------
+
+// Obtener ubicacion
 $url_base = "http://localhost/api_ceti/public/index.php/activos";
 $res_base = @file_get_contents($url_base);
 $json_base = json_decode($res_base, true);
@@ -22,6 +36,11 @@ function nombreEstado($id) {
     $estados = [1 => "Bueno", 2 => "Regular", 3 => "Malo", 4 => "Para desechar"];
     return $estados[$id] ?? "N/A";
 }
+
+// Mantener los filtros al cambiar de página
+$query_params = $_GET;
+unset($query_params['pagina']); // Quitamos pagina para rearmarla
+$url_filtros = http_build_query($query_params);
 $params_reporte = $_SERVER['QUERY_STRING'] ?? '';
 
 include 'header.php'; 
@@ -30,8 +49,8 @@ include 'header.php';
 <div class="d-flex align-items-center justify-content-center mb-4 p-3 bg-white shadow-sm rounded-3 border-top border-4 border-danger">
     <img src="img/logo.png" alt="Logo CEETII" style="max-height: 75px; margin-right: 25px;">
     <div class="text-start">
-        <h2 class="mb-0 fw-bold text-dark" style="letter-spacing: -1px; line-height: 1;">SISTEMA DE ACTIVOS</h2>
-        <p class="text-muted mb-0 small text-uppercase" style="letter-spacing: 1px;">Gestión e Inventarios - CEETII</p>
+        <h2 class="mb-0 fw-bold text-dark">SISTEMA DE ACTIVOS</h2>
+        <p class="text-muted mb-0 small text-uppercase">Gestión e Inventarios - CEETII</p>
     </div>
 </div>
 
@@ -93,7 +112,7 @@ include 'header.php';
     </div>
 </div>
 
-<div class="card shadow border-0 overflow-hidden">
+<div id="seccion-tabla" class="card shadow border-0 overflow-hidden">
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
             <thead class="table-dark">
@@ -110,15 +129,16 @@ include 'header.php';
                 </tr>
             </thead>
             <tbody>
+                <?php if(empty($activos)): ?>
+                    <tr><td colspan="10" class="text-center p-4">No se encontraron activos.</td></tr>
+                <?php endif; ?>
                 <?php foreach($activos as $a): ?>
                 <tr>
                     <td class="ps-3 fw-bold"><?= htmlspecialchars($a['nombre']) ?></td>
                     <td><span class="text-muted small"><?= htmlspecialchars($a['codigo_activo']) ?></span></td>
                     <td><?= htmlspecialchars($a['ubicacion']) ?></td>
                     <td>
-                        <?php 
-                            $color = match($a['estado_id']) { 1 => 'success', 2 => 'warning', 3 => 'danger', default => 'secondary' };
-                        ?>
+                        <?php $color = match($a['estado_id']) { 1 => 'success', 2 => 'warning', 3 => 'danger', default => 'secondary' }; ?>
                         <span class="badge bg-<?= $color ?>"><?= nombreEstado($a['estado_id']) ?></span>
                     </td>
                     <?php if($ver_resp): ?> <td><?= htmlspecialchars($a['responsable']) ?></td> <?php endif; ?>
@@ -137,5 +157,26 @@ include 'header.php';
         </table>
     </div>
 </div>
+
+<?php if($paginas_totales > 1): ?>
+<nav class="mt-4">
+    <ul class="pagination justify-content-center">
+        <li class="page-item <?= ($pagina_actual <= 1) ? 'disabled' : '' ?>">
+            <a class="page-link" href="?pagina=<?= $pagina_actual - 1 ?>&<?= $url_filtros ?>#seccion-tabla">Anterior</a>
+        </li>
+        
+        <?php for($i = 1; $i <= $paginas_totales; $i++): ?>
+            <li class="page-item <?= ($pagina_actual == $i) ? 'active' : '' ?>">
+                <a class="page-link" href="?pagina=<?= $i ?>&<?= $url_filtros ?>#seccion-tabla"><?= $i ?></a>
+            </li>
+        <?php endfor; ?>
+
+        <li class="page-item <?= ($pagina_actual >= $paginas_totales) ? 'disabled' : '' ?>">
+            <a class="page-link" href="?pagina=<?= $pagina_actual + 1 ?>&<?= $url_filtros ?>#seccion-tabla">Siguiente</a>
+        </li>
+    </ul>
+</nav>
+<p class="text-center text-muted small">Mostrando página <?= $pagina_actual ?> de <?= $paginas_totales ?> (Total: <?= $total_activos ?> activos)</p>
+<?php endif; ?>
 
 <?php include 'footer.php'; ?>
