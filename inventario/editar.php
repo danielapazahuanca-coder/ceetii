@@ -28,29 +28,28 @@ include 'header.php';
 
 <div class="row justify-content-center">
     <div class="col-md-6 col-lg-5">
-        
         <?php if (!$activo): ?>
             <div class="alert alert-warning text-center shadow-sm border-0">
-                <span class="material-icons d-block mb-2">search_off</span>
                 <h6 class="fw-bold">Activo no encontrado</h6>
-                <p class="small">El ID #<?= $id_url ?> no existe en la lista actual.</p>
                 <a href="activos.php" class="btn btn-sm btn-outline-secondary">Volver</a>
             </div>
         <?php else: ?>
-
             <div class="card shadow border-0 mb-5">
                 <div class="card-body p-4">
-                    <form method="POST" action="actualizar.php">
+                    <form method="POST" action="actualizar.php" autocomplete="off">
                         <input type="hidden" name="id" value="<?= $activo['id'] ?>">
 
                         <div class="mb-3">
                             <label class="form-label fw-bold small text-secondary">Nombre del Activo</label>
-                            <input type="text" name="nombre" class="form-control" value="<?= htmlspecialchars($activo['nombre'] ?? '') ?>" required>
+                            <input type="text" name="nombre" class="form-control" 
+                                   value="<?= htmlspecialchars($activo['nombre'] ?? '') ?>" 
+                                   required oninput="validarTexto(this, 'letras')">
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label fw-bold small text-secondary">Código / ID</label>
-                            <input type="text" name="codigo_activo" class="form-control" value="<?= htmlspecialchars($activo['codigo_activo'] ?? '') ?>" required>
+                            <label class="form-label fw-bold small text-secondary">Código (No editable)</label>
+                            <input type="text" name="codigo_activo" class="form-control bg-light text-muted fw-bold" 
+                                   value="<?= htmlspecialchars($activo['codigo_activo'] ?? '') ?>" readonly>
                         </div>
 
                         <div class="mb-3">
@@ -66,34 +65,51 @@ include 'header.php';
 
                         <div class="mb-3">
                             <label class="form-label fw-bold small text-secondary">Ubicación</label>
-                            <input type="text" name="ubicacion" class="form-control" value="<?= htmlspecialchars($activo['ubicacion'] ?? '') ?>">
+                            <input type="text" name="ubicacion" class="form-control" 
+                                   value="<?= htmlspecialchars($activo['ubicacion'] ?? '') ?>" oninput="validarTexto(this, 'numeros')">
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label fw-bold small text-secondary">Responsable</label>
-                            <input type="text" name="responsable" class="form-control" value="<?= htmlspecialchars($activo['responsable'] ?? '') ?>">
+                            <input type="text" name="responsable" class="form-control" 
+                                   value="<?= htmlspecialchars($activo['responsable'] ?? '') ?>" oninput="validarTexto(this, 'letras')">
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label fw-bold small text-secondary">Precio (Bs.)</label>
-                            <input type="number" step="0.01" name="precio_compra" class="form-control" value="<?= $activo['precio_compra'] ?? '' ?>">
+                            <input type="number" step="0.01" name="precio_compra" class="form-control" 
+                                   value="<?= $activo['precio_compra'] ?? '' ?>">
                         </div>
 
                         <div class="mb-4">
                             <label class="form-label fw-bold small text-secondary">Observaciones</label>
-                            <textarea name="observaciones" class="form-control" rows="2"><?= htmlspecialchars($activo['observaciones'] ?? '') ?></textarea>
+                            <textarea name="observaciones" class="form-control" rows="2" oninput="validarTexto(this, 'completo')"><?= htmlspecialchars($activo['observaciones'] ?? '') ?></textarea>
                         </div>
 
                         <div class="d-grid gap-2 border-top pt-3">
-                            <button type="submit" class="btn btn-ceetii py-2">Actualizar Cambios</button>
-                            <a href="activos.php" class="btn btn-link btn-sm text-decoration-none text-muted">Cancelar y volver</a>
+                            <button type="submit" class="btn btn-dark py-2">Actualizar Cambios</button>
+                            <a href="activos.php" class="btn btn-outline-secondary py-2">Volver</a>
                         </div>
                     </form>
                 </div>
             </div>
         <?php endif; ?>
-
     </div>
 </div>
+
+<script>
+function validarTexto(input, tipo) {
+    let regex;
+    if (tipo === 'completo') {
+        regex = /[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ .,-]/g;
+    } else if (tipo === 'numeros') {
+        regex = /[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ ]/g;
+    } else {
+        regex = /[^a-zA-ZáéíóúÁÉÍÓÚñÑ ]/g;
+    }
+    input.value = input.value.replace(regex, '');
+    input.value = input.value.replace(/  +/g, ' ');
+}
+</script>
 
 <?php include 'footer.php'; ?>

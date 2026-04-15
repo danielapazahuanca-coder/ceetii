@@ -1,10 +1,43 @@
 <?php
-// recoger datos
+$nombre = $_POST['nombre'] ?? '';
+$ubicacion = $_POST['ubicacion'] ?? '';
+
+$nombreLimpio = trim(strtoupper($nombre));
+$palabras = explode(' ', $nombreLimpio);
+$importantes = [];
+foreach($palabras as $p) {
+    if(strlen(trim($p)) > 2) { $importantes[] = $p; }
+}
+
+if(count($importantes) >= 2) {
+    $nomCod = substr($importantes[0], 0, 2) . substr($importantes[1], 0, 1);
+} else {
+    if(strlen($nombreLimpio) >= 3) {
+        $nomCod = substr($nombreLimpio, 0, 2) . substr($nombreLimpio, -1);
+    } else {
+        $nomCod = str_pad($nombreLimpio, 3, 'X');
+    }
+}
+
+$ubiLetra = strtoupper(substr($ubicacion, 0, 1));
+$ubiNum = preg_replace('/[^0-9]/', '', $ubicacion);
+$ubiCod = $ubiLetra . $ubiNum;
+
+$base_codigo = $ubiCod . "-" . $nomCod;
+
+$url_check = "http://localhost/api_ceti/public/index.php/activos?buscar=" . urlencode($base_codigo);
+$res_check = @file_get_contents($url_check);
+$data_check = json_decode($res_check, true);
+$lista = $data_check['data'] ?? [];
+
+$correlativo = count($lista) + 1;
+$codigo_final = $base_codigo . "-" . str_pad($correlativo, 2, "0", STR_PAD_LEFT);
+
 $data = [
-    'nombre'         => $_POST['nombre'] ?? '',
-    'codigo_activo'  => $_POST['codigo_activo'] ?? '',
-    'estado_id'      => (int)($_POST['estado_id'] ?? 0),
-    'ubicacion'      => $_POST['ubicacion'] ?? '',
+    'nombre'         => $nombre,
+    'codigo_activo'  => $codigo_final,
+    'estado_id'      => (int)($_POST['estado_id'] ?? 1),
+    'ubicacion'      => $ubicacion,
     'precio_compra'  => (float)($_POST['precio_compra'] ?? 0),
     'responsable'    => $_POST['responsable'] ?? '',
     'observaciones'  => $_POST['observaciones'] ?? '',
@@ -13,7 +46,6 @@ $data = [
 ];
 
 $url = "http://localhost/api_ceti/public/index.php/activos";
-
 $options = [
     'http' => [
         'header'  => "Content-Type: application/json\r\n",
@@ -23,21 +55,19 @@ $options = [
     ],
 ];
 
-$context  = stream_context_create($options);
+$context = stream_context_create($options);
 $result = file_get_contents($url, false, $context);
 
-// resp
 if ($result !== FALSE) {
     $res = json_decode($result, true);
-    
     if (isset($res['status']) && $res['status'] === 'success') {
         header("Location: activos.php");
         exit();
     } else {
-        echo "<h3>Error de la API:</h3>";
-        echo "<pre>" . print_r($result, true) . "</pre>";
-        echo "<a href='crear.php'>Volver</a>";
+        echo "Error API: " . ($res['message'] ?? 'Desconocido');
+        echo "<br><a href='crear.php'>Volver</a>";
     }
 } else {
-    echo "No se pudo conectar con la API.";
+    echo "Error de conexión.";
 }
+?>
