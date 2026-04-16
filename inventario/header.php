@@ -95,6 +95,9 @@
         
         <div class="navbar-nav ms-auto">
             <a class="nav-link active small" href="activos.php">Inicio</a>
+            <a class="nav-link small text-warning" href="papelera.php">
+                <span class="material-icons align-middle" style="font-size: 1rem;">delete_outline</span> Papelera
+            </a>
         </div>
     </div>
 </nav>
