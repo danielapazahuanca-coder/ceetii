@@ -2,6 +2,7 @@
 $nombre = $_POST['nombre'] ?? '';
 $ubicacion = $_POST['ubicacion'] ?? '';
 
+// Lógica de generación de código (la mantenemos igual)
 $nombreLimpio = trim(strtoupper($nombre));
 $palabras = explode(' ', $nombreLimpio);
 $importantes = [];
@@ -22,17 +23,17 @@ if(count($importantes) >= 2) {
 $ubiLetra = strtoupper(substr($ubicacion, 0, 1));
 $ubiNum = preg_replace('/[^0-9]/', '', $ubicacion);
 $ubiCod = $ubiLetra . $ubiNum;
-
 $base_codigo = $ubiCod . "-" . $nomCod;
 
+// Verificación de correlativo
 $url_check = "http://localhost/api_ceti/public/index.php/activos?buscar=" . urlencode($base_codigo);
 $res_check = @file_get_contents($url_check);
 $data_check = json_decode($res_check, true);
 $lista = $data_check['data'] ?? [];
-
 $correlativo = count($lista) + 1;
 $codigo_final = $base_codigo . "-" . str_pad($correlativo, 2, "0", STR_PAD_LEFT);
 
+// Preparamos los datos para la API
 $data = [
     'nombre'         => $nombre,
     'codigo_activo'  => $codigo_final,
@@ -40,9 +41,7 @@ $data = [
     'ubicacion'      => $ubicacion,
     'precio_compra'  => (float)($_POST['precio_compra'] ?? 0),
     'responsable'    => $_POST['responsable'] ?? '',
-    'observaciones'  => $_POST['observaciones'] ?? '',
-    'fecha_registro' => date('Y-m-d'),
-    'foto_path'      => null
+    'observaciones'  => $_POST['observaciones'] ?? ''
 ];
 
 $url = "http://localhost/api_ceti/public/index.php/activos";
@@ -51,23 +50,27 @@ $options = [
         'header'  => "Content-Type: application/json\r\n",
         'method'  => 'POST',
         'content' => json_encode($data), 
-        'ignore_errors' => true
+        'ignore_errors' => true // Permite leer la respuesta aunque sea un error 400 o 500
     ],
 ];
 
 $context = stream_context_create($options);
-$result = file_get_contents($url, false, $context);
+$result = @file_get_contents($url, false, $context);
 
 if ($result !== FALSE) {
     $res = json_decode($result, true);
-    if (isset($res['status']) && $res['status'] === 'success') {
+    // Si el status es success o la API devuelve un código de creado (201)
+    if (isset($res['status']) && ($res['status'] === 'success' || $res['status'] === 201)) {
         header("Location: activos.php");
         exit();
     } else {
-        echo "Error API: " . ($res['message'] ?? 'Desconocido');
-        echo "<br><a href='crear.php'>Volver</a>";
+        // Muestra el error real que viene de la API para que sepas qué pasó
+        echo "<h3>Error al guardar en la base de datos:</h3>";
+        echo "<p>Mensaje: " . ($res['message'] ?? 'Error no especificado por la API') . "</p>";
+        echo "<pre>Detalles técnicos: "; print_r($res); echo "</pre>";
+        echo "<a href='crear.php'>Volver al formulario</a>";
     }
 } else {
-    echo "Error de conexión.";
+    echo "Error crítico: No hay conexión con la API en $url";
 }
 ?>

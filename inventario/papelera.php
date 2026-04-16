@@ -18,6 +18,8 @@ function nombreEstado($id) {
 include 'header.php'; 
 ?>
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <div class="d-flex align-items-center justify-content-center mb-4 p-3 bg-white shadow-sm rounded-3 border-top border-4 border-secondary">
     <div class="text-center">
         <h2 class="mb-0 fw-bold text-secondary">PAPELERA DE RECICLAJE</h2>
@@ -52,7 +54,10 @@ include 'header.php';
                     </td>
                     <td><?= htmlspecialchars($a['responsable']) ?></td>
                     <td class="text-center">
-                        <a href="restaurar.php?id=<?= $a['id'] ?>" class="btn btn-sm btn-success">Restaurar</a>
+                        <button type="button" class="btn btn-sm btn-success px-3" 
+                                onclick="confirmarRestaurar('<?= $a['id'] ?>', '<?= htmlspecialchars($a['nombre']) ?>')">
+                            Restaurar
+                        </button>
                     </td>
                 </tr>
                 <?php endforeach; ?>
@@ -64,5 +69,24 @@ include 'header.php';
 <div class="mt-3">
     <a href="activos.php" class="btn btn-outline-dark">Volver a Activos</a>
 </div>
+
+<script>
+function confirmarRestaurar(id, nombre) {
+    Swal.fire({
+        title: '¿Restaurar Activo?',
+        text: `El activo "${nombre}" volverá a aparecer en la lista principal.`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#198754',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sí, restaurar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = `restaurar.php?id=${id}`;
+        }
+    });
+}
+</script>
 
 <?php include 'footer.php'; ?>

@@ -13,6 +13,8 @@ sort($ubicaciones_unicas);
 $codigos_existentes = array_column($activos_existentes, 'codigo_activo');
 ?>
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <style>
     .sugerencias-container { position: relative; }
     .lista-desplegable {
@@ -36,11 +38,11 @@ $codigos_existentes = array_column($activos_existentes, 'codigo_activo');
     <div class="col-md-6 col-lg-5"> 
         <div class="card shadow border-0 mb-5">
             <div class="card-body p-4">
-                <form method="POST" action="guardar.php" autocomplete="off">
+                <form method="POST" action="guardar.php" id="formCrear" autocomplete="off">
                     
                     <div class="mb-3 sugerencias-container">
                         <label class="form-label fw-bold small text-secondary">Nombre del Activo</label>
-                        <input type="text" id="nombre_input" class="form-control form-control-sm" placeholder="Laptop Nitro..." required autofocus oninput="validarTexto(this, 'letras')">
+                        <input type="text" id="nombre_input" class="form-control form-control-sm" placeholder="Laptop Nitro..." required autofocus oninput="validarTexto(this, 'completo')">
                         <input type="hidden" name="nombre" id="nombre_real">
                         <div id="lista_nom" class="lista-desplegable">
                             <?php foreach($nombres_unicos as $nom): ?>
@@ -73,7 +75,7 @@ $codigos_existentes = array_column($activos_existentes, 'codigo_activo');
 
                     <div class="mb-3">
                         <label class="form-label fw-bold small text-secondary">Estado</label>
-                        <select name="estado_id" class="form-select form-select-sm">
+                        <select name="estado_id" id="estado_id" class="form-select form-select-sm">
                             <option value="1">Bueno</option>
                             <option value="2">Regular</option>
                             <option value="3">Malo</option>
@@ -82,16 +84,16 @@ $codigos_existentes = array_column($activos_existentes, 'codigo_activo');
 
                     <div class="mb-3">
                         <label class="form-label fw-bold small text-secondary">Responsable</label>
-                        <input type="text" name="responsable" class="form-control form-control-sm" oninput="validarTexto(this, 'letras')">
+                        <input type="text" name="responsable" id="responsable" class="form-control form-control-sm" oninput="validarTexto(this, 'letras')">
                     </div>
 
                     <div class="mb-4">
                         <label class="form-label fw-bold small text-secondary">Observaciones</label>
-                        <textarea name="observaciones" class="form-control form-control-sm" rows="2" oninput="validarTexto(this, 'completo')"></textarea>
+                        <textarea name="observaciones" id="observaciones" class="form-control form-control-sm" rows="2" oninput="validarTexto(this, 'completo')"></textarea>
                     </div>
 
                     <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-dark py-2">Guardar Activo</button>
+                        <button type="button" onclick="confirmarGuardado()" class="btn btn-dark py-2">Guardar Activo</button>
                         <a href="activos.php" class="btn btn-outline-secondary py-2">Volver</a>
                     </div>
                 </form>
@@ -103,6 +105,36 @@ $codigos_existentes = array_column($activos_existentes, 'codigo_activo');
 <script>
 const codigosDB = <?= json_encode($codigos_existentes) ?>;
 
+function confirmarGuardado() {
+    const nombre = document.getElementById('nombre_real').value;
+    const codigo = document.getElementById('codigo_preview').value;
+    const ubicacion = document.getElementById('ubicacion_real').value;
+
+    if(!nombre || !ubicacion) {
+        Swal.fire('Error', 'Por favor completa los campos obligatorios.', 'warning');
+        return;
+    }
+
+    Swal.fire({
+        title: '¿Registrar Activo?',
+        html: `<div class='text-start small'>
+                <b>Nombre:</b> ${nombre}<br>
+                <b>Código:</b> ${codigo}<br>
+                <b>Ubicación:</b> ${ubicacion}
+               </div>`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#8d191d',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sí, registrar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            document.getElementById('formCrear').submit();
+        }
+    });
+}
+
 function validarTexto(input, tipo) {
     let regex;
     if (tipo === 'completo') {
@@ -112,8 +144,27 @@ function validarTexto(input, tipo) {
     } else {
         regex = /[^a-zA-ZáéíóúÁÉÍÓÚñÑ ]/g;
     }
-    input.value = input.value.replace(regex, '');
-    input.value = input.value.replace(/  +/g, ' ');
+    
+    let valor = input.value.replace(regex, '');
+    valor = valor.replace(/\s+/g, ' ');
+
+    const excepciones = ['de', 'del', 'la', 'las', 'el', 'los', 'con', 'en', 'y', 'o'];
+    let palabras = valor.toLowerCase().split(' ');
+
+    for (let i = 0; i < palabras.length; i++) {
+        if (i === 0 || !excepciones.includes(palabras[i])) {
+            palabras[i] = palabras[i].charAt(0).toUpperCase() + palabras[i].slice(1);
+        }
+    }
+    
+    input.value = palabras.join(' ');
+    
+    const idReal = input.id.replace('_input', '_real');
+    const hidden = document.getElementById(idReal);
+    if(hidden) {
+        hidden.value = input.value;
+        generarCodigo();
+    }
 }
 
 function configurarBuscador(inputId, listaId, realId) {

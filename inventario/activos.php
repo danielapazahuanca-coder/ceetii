@@ -17,6 +17,9 @@ $response = @file_get_contents($url);
 $resultado = json_decode($response, true);
 $todos_los_activos = $resultado['data'] ?? [];
 
+// ORDENAR: Invertimos el array para que los últimos registros (nuevos) aparezcan primero por defecto
+$todos_los_activos = array_reverse($todos_los_activos);
+
 $total_activos = count($todos_los_activos);
 $total_paginas = ceil($total_activos / $por_pagina);
 $indice_inicio = ($pagina_actual - 1) * $por_pagina;
@@ -40,6 +43,8 @@ $params_reporte = $_SERVER['QUERY_STRING'] ?? '';
 
 include 'header.php'; 
 ?>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <div class="d-flex align-items-center justify-content-center mb-4 p-3 bg-white shadow-sm rounded-3 border-top border-4 border-danger">
     <img src="img/logo.png" alt="Logo CEETII" style="max-height: 75px; margin-right: 25px;">
@@ -98,9 +103,14 @@ include 'header.php';
 </div>
 
 <div class="d-flex justify-content-between mb-3">
-    <a href="crear.php" class="btn btn-success shadow-sm px-4">
-        <span class="material-icons align-middle me-1">add_box</span> Nuevo Activo
-    </a>
+    <div class="d-flex gap-2">
+        <a href="crear.php" class="btn btn-success shadow-sm px-4">
+            <span class="material-icons align-middle me-1">add_box</span> Nuevo Activo
+        </a>
+        <button id="btnOrden" class="btn btn-outline-dark shadow-sm px-3" onclick="invertirTabla()">
+            <span class="material-icons align-middle me-1">sort</span> Antiguos primero
+        </button>
+    </div>
     <div>
         <a href="reporte.php?<?= $params_reporte ?>" target="_blank" class="btn btn-outline-danger btn-sm">PDF</a>
         <a href="excel.php?<?= $params_reporte ?>" class="btn btn-outline-success btn-sm">EXCEL</a>
@@ -109,7 +119,7 @@ include 'header.php';
 
 <div class="card shadow border-0 overflow-hidden">
     <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
+        <table class="table table-hover align-middle mb-0" id="tablaActivos">
             <thead class="table-dark">
                 <tr>
                     <th class="ps-3">Nombre del Activo</th>
@@ -140,7 +150,7 @@ include 'header.php';
                     <td class="text-center">
                         <div class="btn-group">
                             <a href="editar.php?id=<?= $a['id'] ?>" class="btn btn-sm btn-outline-primary">Editar</a>
-                            <a href="eliminar.php?id=<?= $a['id'] ?>" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Eliminar?')">Borrar</a>
+                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="confirmarEliminar('<?= $a['id'] ?>', '<?= htmlspecialchars($a['nombre']) ?>')">Borrar</button>
                         </div>
                     </td>
                 </tr>
@@ -167,5 +177,42 @@ include 'header.php';
     </ul>
 </nav>
 <?php endif; ?>
+
+<script>
+let ordenDescendente = true; 
+
+function invertirTabla() {
+    const tableBody = document.querySelector("#tablaActivos tbody");
+    const filas = Array.from(tableBody.querySelectorAll("tr"));
+    const btn = document.getElementById("btnOrden");
+
+    filas.reverse();
+    tableBody.innerHTML = "";
+    filas.forEach(f => tableBody.appendChild(f));
+
+    ordenDescendente = !ordenDescendente;
+    btn.innerHTML = ordenDescendente 
+        ? '<span class="material-icons align-middle me-1">sort</span> Antiguos primero' 
+        : '<span class="material-icons align-middle me-1">sort</span> Nuevos primero';
+}
+
+// Función de SweetAlert2 para eliminar
+function confirmarEliminar(id, nombre) {
+    Swal.fire({
+        title: '¿Eliminar Activo?',
+        text: `¿Estás seguro de que quieres borrar "${nombre}"?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sí, borrar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = `eliminar.php?id=${id}`;
+        }
+    });
+}
+</script>
 
 <?php include 'footer.php'; ?>
