@@ -37,6 +37,11 @@
             text-transform: uppercase;
         }
 
+        .nav-link {
+            transition: all 0.3s ease;
+            margin: 0 5px;
+        }
+
         /* Tarjetas y Tablas */
         .card-custom, .table-container, .card {
             background-color: #ffffff !important;
@@ -93,11 +98,24 @@
             VOLVER AL SISTEMA
         </a>
         
-        <div class="navbar-nav ms-auto">
-            <a class="nav-link active small" href="activos.php">Inicio</a>
-            <a class="nav-link small text-warning" href="papelera.php">
-                <span class="material-icons align-middle" style="font-size: 1rem;">delete_outline</span> Papelera
-            </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link active small d-flex align-items-center" href="activos.php">
+                    <span class="material-icons me-1" style="font-size: 1.1rem;">inventory_2</span> Inicio
+                </a>
+                
+                <a class="nav-link small d-flex align-items-center text-white fw-bold" href="prestamos.php">
+                    <span class="material-icons me-1" style="font-size: 1.1rem;">handshake</span> PRÉSTAMOS
+                </a>
+
+                <a class="nav-link small text-warning d-flex align-items-center" href="papelera.php">
+                    <span class="material-icons me-1" style="font-size: 1.1rem;">delete_outline</span> Papelera
+                </a>
+            </div>
         </div>
     </div>
 </nav>

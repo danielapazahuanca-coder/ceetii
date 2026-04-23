@@ -1,8 +1,8 @@
-<?php
+<?php 
 $nombre = $_POST['nombre'] ?? '';
 $ubicacion = $_POST['ubicacion'] ?? '';
 
-// Lógica de generación de código (la mantenemos igual)
+// Lógica de generación de código (se mantiene igual)
 $nombreLimpio = trim(strtoupper($nombre));
 $palabras = explode(' ', $nombreLimpio);
 $importantes = [];
@@ -35,13 +35,14 @@ $codigo_final = $base_codigo . "-" . str_pad($correlativo, 2, "0", STR_PAD_LEFT)
 
 // Preparamos los datos para la API
 $data = [
-    'nombre'         => $nombre,
-    'codigo_activo'  => $codigo_final,
-    'estado_id'      => (int)($_POST['estado_id'] ?? 1),
-    'ubicacion'      => $ubicacion,
-    'precio_compra'  => (float)($_POST['precio_compra'] ?? 0),
-    'responsable'    => $_POST['responsable'] ?? '',
-    'observaciones'  => $_POST['observaciones'] ?? ''
+    'nombre'          => $nombre,
+    'codigo_activo'   => $codigo_final,
+    'estado_id'       => (int)($_POST['estado_id'] ?? 1),
+    'ubicacion'       => $ubicacion,
+    'precio_compra'   => (float)($_POST['precio_compra'] ?? 0),
+    'fecha_compra'    => $_POST['fecha_compra'] ?? null, // NUEVO: Captura la fecha enviada
+    'responsable'     => $_POST['responsable'] ?? '',
+    'observaciones'   => $_POST['observaciones'] ?? ''
 ];
 
 $url = "http://localhost/api_ceti/public/index.php/activos";
@@ -50,7 +51,7 @@ $options = [
         'header'  => "Content-Type: application/json\r\n",
         'method'  => 'POST',
         'content' => json_encode($data), 
-        'ignore_errors' => true // Permite leer la respuesta aunque sea un error 400 o 500
+        'ignore_errors' => true 
     ],
 ];
 
@@ -59,12 +60,10 @@ $result = @file_get_contents($url, false, $context);
 
 if ($result !== FALSE) {
     $res = json_decode($result, true);
-    // Si el status es success o la API devuelve un código de creado (201)
     if (isset($res['status']) && ($res['status'] === 'success' || $res['status'] === 201)) {
         header("Location: activos.php");
         exit();
     } else {
-        // Muestra el error real que viene de la API para que sepas qué pasó
         echo "<h3>Error al guardar en la base de datos:</h3>";
         echo "<p>Mensaje: " . ($res['message'] ?? 'Error no especificado por la API') . "</p>";
         echo "<pre>Detalles técnicos: "; print_r($res); echo "</pre>";

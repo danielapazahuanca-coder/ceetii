@@ -67,10 +67,16 @@ $codigos_existentes = array_column($activos_existentes, 'codigo_activo');
                         <input type="text" name="codigo_activo" id="codigo_preview" class="form-control form-control-sm bg-light fw-bold text-danger" readonly>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label fw-bold small text-secondary">Precio (Bs.)</label>
-                        <input type="text" id="precio_visual" class="form-control form-control-sm" placeholder="0" oninput="formatearMiles(this)">
-                        <input type="hidden" name="precio_compra" id="precio_real">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold small text-secondary">Precio (Bs.)</label>
+                            <input type="text" id="precio_visual" class="form-control form-control-sm" placeholder="0" oninput="formatearMiles(this)">
+                            <input type="hidden" name="precio_compra" id="precio_real">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold small text-secondary">Fecha Compra</label>
+                            <input type="date" name="fecha_compra" id="fecha_compra" class="form-control form-control-sm">
+                        </div>
                     </div>
 
                     <div class="mb-3">
@@ -231,8 +237,10 @@ function formatearMiles(input) {
 
 document.addEventListener('click', (e) => {
     if (!e.target.closest('.sugerencias-container')) {
-        document.getElementById('lista_nom').style.display = 'none';
-        document.getElementById('lista_ubi').style.display = 'none';
+        const ln = document.getElementById('lista_nom');
+        const lu = document.getElementById('lista_ubi');
+        if(ln) ln.style.display = 'none';
+        if(lu) lu.style.display = 'none';
     }
 });
 </script>

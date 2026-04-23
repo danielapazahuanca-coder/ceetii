@@ -1,17 +1,22 @@
 <?php
+// zona horaria
+date_default_timezone_set('America/La_Paz');
 
 $busqueda_texto = $_GET['buscar'] ?? '';
 $filtro_ubicacion = $_GET['ubicacion'] ?? '';
+
+// Configuración de visualización de columnas
 $ver_resp = isset($_GET['col_resp']) || !isset($_GET['filtrar']);
 $ver_precio = isset($_GET['col_precio']) || !isset($_GET['filtrar']);
+$ver_fecha_compra = isset($_GET['col_fecha_c']) || !isset($_GET['filtrar']); // NUEVA COLUMNA
 $ver_fecha = isset($_GET['col_fecha']) || !isset($_GET['filtrar']);
 $ver_obs = isset($_GET['col_obs']) || !isset($_GET['filtrar']);
-
 
 $por_pagina = 10;
 $pagina_actual = isset($_GET['p']) ? (int)$_GET['p'] : 1;
 if ($pagina_actual < 1) $pagina_actual = 1;
 
+// Petición a la API
 $url = "http://localhost/api_ceti/public/index.php/activos?buscar=" . urlencode($busqueda_texto) . "&ubicacion=" . urlencode($filtro_ubicacion);
 $response = @file_get_contents($url);
 $resultado = json_decode($response, true);
@@ -25,6 +30,7 @@ $total_paginas = ceil($total_activos / $por_pagina);
 $indice_inicio = ($pagina_actual - 1) * $por_pagina;
 $activos = array_slice($todos_los_activos, $indice_inicio, $por_pagina);
 
+// Obtener ubicaciones únicas para el filtro
 $url_base = "http://localhost/api_ceti/public/index.php/activos";
 $res_base = @file_get_contents($url_base);
 $json_base = json_decode($res_base, true);
@@ -90,8 +96,12 @@ include 'header.php';
                     <label class="form-check-label small" for="c2">Precio</label>
                 </div>
                 <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" name="col_fecha_c" id="c_fc" <?= $ver_fecha_compra ? 'checked' : '' ?>>
+                    <label class="form-check-label small text-primary fw-bold" for="c_fc">Fecha Compra</label>
+                </div>
+                <div class="form-check form-check-inline">
                     <input class="form-check-input" type="checkbox" name="col_fecha" id="c3" <?= $ver_fecha ? 'checked' : '' ?>>
-                    <label class="form-check-label small" for="c3">Fecha</label>
+                    <label class="form-check-label small" for="c3">Fecha Registro</label>
                 </div>
                 <div class="form-check form-check-inline">
                     <input class="form-check-input" type="checkbox" name="col_obs" id="c4" <?= $ver_obs ? 'checked' : '' ?>>
@@ -128,6 +138,7 @@ include 'header.php';
                     <th>Estado</th>
                     <?php if($ver_resp): ?> <th>Responsable</th> <?php endif; ?>
                     <?php if($ver_precio): ?> <th>Precio</th> <?php endif; ?>
+                    <?php if($ver_fecha_compra): ?> <th>F. Compra</th> <?php endif; ?>
                     <?php if($ver_fecha): ?> <th>Registro</th> <?php endif; ?>
                     <?php if($ver_obs): ?> <th>Obs.</th> <?php endif; ?>
                     <th class="text-center">Acciones</th>
@@ -140,11 +151,14 @@ include 'header.php';
                     <td><span class="badge bg-light text-dark border"><?= htmlspecialchars($a['codigo_activo']) ?></span></td>
                     <td><?= htmlspecialchars($a['ubicacion']) ?></td>
                     <td>
-                        <?php $color = match($a['estado_id']) { 1 => 'success', 2 => 'warning', 3 => 'danger', default => 'secondary' }; ?>
+                        <?php $color = match((int)$a['estado_id']) { 1 => 'success', 2 => 'warning', 3 => 'danger', default => 'secondary' }; ?>
                         <span class="badge bg-<?= $color ?>"><?= nombreEstado($a['estado_id']) ?></span>
                     </td>
                     <?php if($ver_resp): ?> <td><?= htmlspecialchars($a['responsable']) ?></td> <?php endif; ?>
                     <?php if($ver_precio): ?> <td class="fw-bold">Bs. <?= number_format($a['precio_compra'], 2) ?></td> <?php endif; ?>
+                    <?php if($ver_fecha_compra): ?> 
+                        <td class="text-primary fw-bold"><?= $a['fecha_compra'] ? date('d/m/Y', strtotime($a['fecha_compra'])) : '-' ?></td> 
+                    <?php endif; ?>
                     <?php if($ver_fecha): ?> <td class="small"><?= $a['fecha_registro'] ?></td> <?php endif; ?>
                     <?php if($ver_obs): ?> <td class="small italic text-muted"><?= htmlspecialchars($a['observaciones'] ?? '') ?></td> <?php endif; ?>
                     <td class="text-center">
@@ -196,7 +210,6 @@ function invertirTabla() {
         : '<span class="material-icons align-middle me-1">sort</span> Nuevos primero';
 }
 
-// Función de SweetAlert2 para eliminar
 function confirmarEliminar(id, nombre) {
     Swal.fire({
         title: '¿Eliminar Activo?',
