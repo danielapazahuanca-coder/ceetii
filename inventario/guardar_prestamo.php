@@ -1,22 +1,18 @@
 <?php
 date_default_timezone_set('America/La_Paz');
 
-$activo_id = isset($_POST['activo_id']) ? (int)$_POST['activo_id'] : 0;
-$cantidad  = isset($_POST['cantidad']) ? (int)$_POST['cantidad'] : 1;
+$items = isset($_POST['items']) ? $_POST['items'] : [];
 $solicitante = $_POST['solicitante'] ?? '';
 $documento = $_POST['documento_identidad'] ?? '';
 
-if ($activo_id === 0 || empty($solicitante)) {
-    die("Error: Datos incompletos.");
+if (empty($items) || empty($solicitante)) {
+    die("Error: Debe seleccionar al menos un activo y llenar el nombre del solicitante. <a href='prestamos.php'>Regresar</a>");
 }
 
 $data = [
-    'activo_id'           => $activo_id,
-    'cantidad'            => $cantidad,
+    'items'               => $items, 
     'solicitante'         => $solicitante,
-    'documento_identidad' => $documento,
-    'fecha_prestamo'      => date('Y-m-d H:i:s'),
-    'estado'              => 'Prestado'
+    'documento_identidad' => $documento
 ];
 
 $url = "http://localhost/api_ceti/public/index.php/prestamos";
@@ -37,7 +33,8 @@ if (isset($response['status']) && ($response['status'] == 'success' || $response
     header("Location: prestamos.php");
     exit();
 } else {
-    echo "<h3>Error al guardar en la API:</h3>";
+    echo "<h3>Error al registrar el préstamo múltiple:</h3>";
+    echo "<p>Mensaje: " . ($response['message'] ?? 'Error desconocido') . "</p>";
     echo "<pre>"; print_r($response); echo "</pre>";
-    echo "<a href='prestamos.php'>Regresar</a>";
+    echo "<a href='prestamos.php'>Regresar al sistema</a>";
 }
