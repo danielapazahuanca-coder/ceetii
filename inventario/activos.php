@@ -1,36 +1,39 @@
 <?php
-// zona horaria
+
 date_default_timezone_set('America/La_Paz');
 
+// Captura de filtros
 $busqueda_texto = $_GET['buscar'] ?? '';
 $filtro_ubicacion = $_GET['ubicacion'] ?? '';
 
-// Configuración de visualización de columnas
+// Lógica de visibilidad de columnas (Sincronizada con los nombres de los checkboxes)
 $ver_resp = isset($_GET['col_resp']) || !isset($_GET['filtrar']);
 $ver_precio = isset($_GET['col_precio']) || !isset($_GET['filtrar']);
-$ver_fecha_compra = isset($_GET['col_fecha_c']) || !isset($_GET['filtrar']); // NUEVA COLUMNA
+$ver_fecha_compra = isset($_GET['col_fecha_c']) || !isset($_GET['filtrar']);
 $ver_fecha = isset($_GET['col_fecha']) || !isset($_GET['filtrar']);
 $ver_obs = isset($_GET['col_obs']) || !isset($_GET['filtrar']);
 
+// Paginación
 $por_pagina = 10;
 $pagina_actual = isset($_GET['p']) ? (int)$_GET['p'] : 1;
 if ($pagina_actual < 1) $pagina_actual = 1;
 
-// Petición a la API
+// Petición a la API para obtener activos filtrados
 $url = "http://localhost/api_ceti/public/index.php/activos?buscar=" . urlencode($busqueda_texto) . "&ubicacion=" . urlencode($filtro_ubicacion);
 $response = @file_get_contents($url);
 $resultado = json_decode($response, true);
 $todos_los_activos = $resultado['data'] ?? [];
 
-// ORDENAR: Invertimos el array para que los últimos registros (nuevos) aparezcan primero por defecto
+// Invertir para mostrar los últimos registros primero
 $todos_los_activos = array_reverse($todos_los_activos);
 
+// Cálculos de paginación
 $total_activos = count($todos_los_activos);
 $total_paginas = ceil($total_activos / $por_pagina);
 $indice_inicio = ($pagina_actual - 1) * $por_pagina;
 $activos = array_slice($todos_los_activos, $indice_inicio, $por_pagina);
 
-// Obtener ubicaciones únicas para el filtro
+// Obtener ubicaciones únicas para el select del buscador
 $url_base = "http://localhost/api_ceti/public/index.php/activos";
 $res_base = @file_get_contents($url_base);
 $json_base = json_decode($res_base, true);
@@ -155,12 +158,25 @@ include 'header.php';
                         <span class="badge bg-<?= $color ?>"><?= nombreEstado($a['estado_id']) ?></span>
                     </td>
                     <?php if($ver_resp): ?> <td><?= htmlspecialchars($a['responsable']) ?></td> <?php endif; ?>
-                    <?php if($ver_precio): ?> <td class="fw-bold">Bs. <?= number_format($a['precio_compra'], 2) ?></td> <?php endif; ?>
+                    <?php if($ver_precio): ?> <td class="fw-bold">Bs. <?= number_format($a['precio_compra'] ?? 0, 2) ?></td> <?php endif; ?>
+                    
                     <?php if($ver_fecha_compra): ?> 
-                        <td class="text-primary fw-bold"><?= $a['fecha_compra'] ? date('d/m/Y', strtotime($a['fecha_compra'])) : '-' ?></td> 
+                        <td class="text-primary fw-bold">
+                            <?php 
+                                $f_compra = $a['fecha_compra'] ?? null;
+                                if($f_compra && $f_compra !== '0000-00-00' && $f_compra !== '1970-01-01'): 
+                                    $ts = strtotime($f_compra);
+                                    echo $ts ? date('d/m/Y', $ts) : htmlspecialchars($f_compra);
+                                else: 
+                                    echo '<span class="text-muted fw-normal small">Sin fecha</span>';
+                                endif; 
+                            ?>
+                        </td> 
                     <?php endif; ?>
+
                     <?php if($ver_fecha): ?> <td class="small"><?= $a['fecha_registro'] ?></td> <?php endif; ?>
                     <?php if($ver_obs): ?> <td class="small italic text-muted"><?= htmlspecialchars($a['observaciones'] ?? '') ?></td> <?php endif; ?>
+                    
                     <td class="text-center">
                         <div class="btn-group">
                             <a href="editar.php?id=<?= $a['id'] ?>" class="btn btn-sm btn-outline-primary">Editar</a>

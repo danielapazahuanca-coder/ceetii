@@ -1,8 +1,21 @@
 <?php 
+/**
+ * GUARDAR ACTIVO - Sistema de Inventarios CEETII
+ * Autor: Brandon Meza (Brand) / David Ramirez
+ */
+
+// 1. Configuración de Zona Horaria
+date_default_timezone_set('America/La_Paz');
+
+// 2. Recepción de datos básicos
 $nombre = $_POST['nombre'] ?? '';
 $ubicacion = $_POST['ubicacion'] ?? '';
 
-// Lógica de generación de código (se mantiene igual)
+if (empty($nombre) || empty($ubicacion)) {
+    die("Error: Nombre y Ubicación son campos obligatorios. <a href='crear.php'>Volver</a>");
+}
+
+// 3. Lógica de generación automática de código
 $nombreLimpio = trim(strtoupper($nombre));
 $palabras = explode(' ', $nombreLimpio);
 $importantes = [];
@@ -25,7 +38,7 @@ $ubiNum = preg_replace('/[^0-9]/', '', $ubicacion);
 $ubiCod = $ubiLetra . $ubiNum;
 $base_codigo = $ubiCod . "-" . $nomCod;
 
-// Verificación de correlativo
+// 4. Verificación de correlativo consultando la API
 $url_check = "http://localhost/api_ceti/public/index.php/activos?buscar=" . urlencode($base_codigo);
 $res_check = @file_get_contents($url_check);
 $data_check = json_decode($res_check, true);
@@ -33,18 +46,24 @@ $lista = $data_check['data'] ?? [];
 $correlativo = count($lista) + 1;
 $codigo_final = $base_codigo . "-" . str_pad($correlativo, 2, "0", STR_PAD_LEFT);
 
-// Preparamos los datos para la API
+// 5. Validación y limpieza de la FECHA DE COMPRA
+$fecha_input = $_POST['fecha_compra'] ?? '';
+// Si el string está vacío, mandamos NULL, de lo contrario mandamos la fecha
+$fecha_para_api = (!empty($fecha_input)) ? $fecha_input : null;
+
+// 6. Preparación del JSON para la API
 $data = [
     'nombre'          => $nombre,
     'codigo_activo'   => $codigo_final,
     'estado_id'       => (int)($_POST['estado_id'] ?? 1),
     'ubicacion'       => $ubicacion,
     'precio_compra'   => (float)($_POST['precio_compra'] ?? 0),
-    'fecha_compra'    => $_POST['fecha_compra'] ?? null, // NUEVO: Captura la fecha enviada
+    'fecha_compra'    => $fecha_para_api, 
     'responsable'     => $_POST['responsable'] ?? '',
     'observaciones'   => $_POST['observaciones'] ?? ''
 ];
 
+// 7. Envío de datos a la API mediante POST
 $url = "http://localhost/api_ceti/public/index.php/activos";
 $options = [
     'http' => [
@@ -58,18 +77,32 @@ $options = [
 $context = stream_context_create($options);
 $result = @file_get_contents($url, false, $context);
 
+// 8. Manejo de la respuesta
 if ($result !== FALSE) {
     $res = json_decode($result, true);
-    if (isset($res['status']) && ($res['status'] === 'success' || $res['status'] === 201)) {
+    
+    // Verificamos si la API devolvió éxito (200, 201 o status 'success')
+    $status_code = (isset($res['status']) && ($res['status'] === 'success' || $res['status'] === 201 || $res['status'] === 200));
+    
+    if ($status_code) {
+        // Redirección exitosa a la lista de activos
         header("Location: activos.php");
         exit();
     } else {
-        echo "<h3>Error al guardar en la base de datos:</h3>";
-        echo "<p>Mensaje: " . ($res['message'] ?? 'Error no especificado por la API') . "</p>";
-        echo "<pre>Detalles técnicos: "; print_r($res); echo "</pre>";
-        echo "<a href='crear.php'>Volver al formulario</a>";
+        // Error reportado por la API
+        echo "<div style='font-family: sans-serif; padding: 20px; border: 1px solid #ff0000; background: #fff5f5;'>";
+        echo "<h3 style='color: #d32f2f;'>Error al guardar en la base de datos</h3>";
+        echo "<p><strong>Mensaje:</strong> " . ($res['message'] ?? 'La API no devolvió un mensaje de error.') . "</p>";
+        echo "<p><strong>Datos enviados:</strong></p><pre style='background:#eee; padding:10px;'>";
+        print_r($data);
+        echo "</pre>";
+        echo "<a href='crear.php' style='display:inline-block; padding:10px 20px; background:#333; color:#fff; text-decoration:none; border-radius:5px;'>Volver al formulario</a>";
+        echo "</div>";
     }
 } else {
-    echo "Error crítico: No hay conexión con la API en $url";
+    // Error de conexión física con el servidor
+    echo "<h2 style='color:red;'>Error crítico: No se pudo conectar con la API</h2>";
+    echo "<p>Verifica que el servidor de la API en <b>$url</b> esté encendido.</p>";
+    echo "<a href='crear.php'>Reintentar</a>";
 }
 ?>

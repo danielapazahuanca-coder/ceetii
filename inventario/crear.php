@@ -1,6 +1,15 @@
 <?php 
+/**
+ * FORMULARIO DE REGISTRO - Sistema de Inventarios CEETII
+ * Autor: Brandon Meza (Brand) / David Ramirez
+ */
 include 'header.php'; 
 
+// 1. Configuración de Zona Horaria para la fecha por defecto
+date_default_timezone_set('America/La_Paz');
+$fecha_hoy = date('Y-m-d');
+
+// 2. Obtener datos de la API para sugerencias y validación de códigos
 $url_api = "http://localhost/api_ceti/public/index.php/activos";
 $res_api = @file_get_contents($url_api);
 $json_api = json_decode($res_api, true);
@@ -42,7 +51,7 @@ $codigos_existentes = array_column($activos_existentes, 'codigo_activo');
                     
                     <div class="mb-3 sugerencias-container">
                         <label class="form-label fw-bold small text-secondary">Nombre del Activo</label>
-                        <input type="text" id="nombre_input" class="form-control form-control-sm" placeholder="Laptop Nitro..." required autofocus oninput="validarTexto(this, 'completo')">
+                        <input type="text" id="nombre_input" class="form-control form-control-sm" placeholder="Ej: Laptop Nitro..." required autofocus oninput="validarTexto(this, 'nombre')">
                         <input type="hidden" name="nombre" id="nombre_real">
                         <div id="lista_nom" class="lista-desplegable">
                             <?php foreach($nombres_unicos as $nom): ?>
@@ -53,7 +62,7 @@ $codigos_existentes = array_column($activos_existentes, 'codigo_activo');
 
                     <div class="mb-3 sugerencias-container">
                         <label class="form-label fw-bold small text-secondary">Ubicación</label>
-                        <input type="text" id="ubicacion_input" class="form-control form-control-sm" placeholder="Aula 10..." required oninput="validarTexto(this, 'numeros')">
+                        <input type="text" id="ubicacion_input" class="form-control form-control-sm" placeholder="Ej: Aula 10..." required oninput="validarTexto(this, 'numeros')">
                         <input type="hidden" name="ubicacion" id="ubicacion_real">
                         <div id="lista_ubi" class="lista-desplegable">
                             <?php foreach($ubicaciones_unicas as $ubi): ?>
@@ -63,24 +72,24 @@ $codigos_existentes = array_column($activos_existentes, 'codigo_activo');
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label fw-bold small text-secondary">Código</label>
-                        <input type="text" name="codigo_activo" id="codigo_preview" class="form-control form-control-sm bg-light fw-bold text-danger" readonly>
+                        <label class="form-label fw-bold small text-secondary">Código del Activo</label>
+                        <input type="text" name="codigo_activo" id="codigo_preview" class="form-control form-control-sm bg-light fw-bold text-danger" readonly placeholder="Se generará automáticamente...">
                     </div>
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-bold small text-secondary">Precio (Bs.)</label>
-                            <input type="text" id="precio_visual" class="form-control form-control-sm" placeholder="0" oninput="formatearMiles(this)">
+                            <input type="text" id="precio_visual" class="form-control form-control-sm" placeholder="0.00" oninput="formatearMiles(this)">
                             <input type="hidden" name="precio_compra" id="precio_real">
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-bold small text-secondary">Fecha Compra</label>
-                            <input type="date" name="fecha_compra" id="fecha_compra" class="form-control form-control-sm">
+                            <input type="date" name="fecha_compra" id="fecha_compra" class="form-control form-control-sm" value="<?= $fecha_hoy ?>">
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label fw-bold small text-secondary">Estado</label>
+                        <label class="form-label fw-bold small text-secondary">Estado Físico</label>
                         <select name="estado_id" id="estado_id" class="form-select form-select-sm">
                             <option value="1">Bueno</option>
                             <option value="2">Regular</option>
@@ -89,18 +98,18 @@ $codigos_existentes = array_column($activos_existentes, 'codigo_activo');
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label fw-bold small text-secondary">Responsable</label>
-                        <input type="text" name="responsable" id="responsable" class="form-control form-control-sm" oninput="validarTexto(this, 'letras')">
+                        <label class="form-label fw-bold small text-secondary">Responsable / Asignado</label>
+                        <input type="text" name="responsable" id="responsable" class="form-control form-control-sm" placeholder="Nombre de la persona..." oninput="validarTexto(this, 'letras')">
                     </div>
 
                     <div class="mb-4">
                         <label class="form-label fw-bold small text-secondary">Observaciones</label>
-                        <textarea name="observaciones" id="observaciones" class="form-control form-control-sm" rows="2" oninput="validarTexto(this, 'completo')"></textarea>
+                        <textarea name="observaciones" id="observaciones" class="form-control form-control-sm" rows="2" placeholder="Detalles adicionales..." oninput="validarTexto(this, 'completo')"></textarea>
                     </div>
 
                     <div class="d-grid gap-2">
                         <button type="button" onclick="confirmarGuardado()" class="btn btn-dark py-2">Guardar Activo</button>
-                        <a href="activos.php" class="btn btn-outline-secondary py-2">Volver</a>
+                        <a href="activos.php" class="btn btn-outline-secondary py-2">Cancelar</a>
                     </div>
                 </form>
             </div>
@@ -109,6 +118,7 @@ $codigos_existentes = array_column($activos_existentes, 'codigo_activo');
 </div>
 
 <script>
+// Lista de códigos para evitar duplicados en el correlativo local
 const codigosDB = <?= json_encode($codigos_existentes) ?>;
 
 function confirmarGuardado() {
@@ -117,14 +127,14 @@ function confirmarGuardado() {
     const ubicacion = document.getElementById('ubicacion_real').value;
 
     if(!nombre || !ubicacion) {
-        Swal.fire('Error', 'Por favor completa los campos obligatorios.', 'warning');
+        Swal.fire('Atención', 'Nombre y Ubicación son obligatorios.', 'warning');
         return;
     }
 
     Swal.fire({
-        title: '¿Registrar Activo?',
-        html: `<div class='text-start small'>
-                <b>Nombre:</b> ${nombre}<br>
+        title: '¿Confirmar Registro?',
+        html: `<div class='text-start small border-top pt-2 mt-2'>
+                <b>Activo:</b> ${nombre}<br>
                 <b>Código:</b> ${codigo}<br>
                 <b>Ubicación:</b> ${ubicacion}
                </div>`,
@@ -143,20 +153,16 @@ function confirmarGuardado() {
 
 function validarTexto(input, tipo) {
     let regex;
-    if (tipo === 'completo') {
-        regex = /[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ .,-]/g;
-    } else if (tipo === 'numeros') {
-        regex = /[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ ]/g;
-    } else {
-        regex = /[^a-zA-ZáéíóúÁÉÍÓÚñÑ ]/g;
-    }
+    if (tipo === 'completo') regex = /[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ .,-]/g;
+    else if (tipo === 'numeros') regex = /[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ ]/g;
+    else if (tipo === 'nombre') regex = /[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ ,-]/g;
+    else regex = /[^a-zA-ZáéíóúÁÉÍÓÚñÑ ]/g;
     
-    let valor = input.value.replace(regex, '');
-    valor = valor.replace(/\s+/g, ' ');
+    let valor = input.value.replace(regex, '').replace(/\s+/g, ' ');
 
+    // Auto-capitalización inteligente
     const excepciones = ['de', 'del', 'la', 'las', 'el', 'los', 'con', 'en', 'y', 'o'];
     let palabras = valor.toLowerCase().split(' ');
-
     for (let i = 0; i < palabras.length; i++) {
         if (i === 0 || !excepciones.includes(palabras[i])) {
             palabras[i] = palabras[i].charAt(0).toUpperCase() + palabras[i].slice(1);
@@ -164,7 +170,6 @@ function validarTexto(input, tipo) {
     }
     
     input.value = palabras.join(' ');
-    
     const idReal = input.id.replace('_input', '_real');
     const hidden = document.getElementById(idReal);
     if(hidden) {
@@ -211,12 +216,9 @@ function generarCodigo() {
         if (palabras.length >= 2) {
             nomCod = palabras[0].substring(0, 2) + palabras[1].charAt(0);
         } else {
-            if(nomFull.length >= 3) {
-                nomCod = nomFull.substring(0, 2) + nomFull.slice(-1);
-            } else {
-                nomCod = nomFull.padEnd(3, 'X');
-            }
+            nomCod = nomFull.length >= 3 ? nomFull.substring(0, 2) + nomFull.slice(-1) : nomFull.padEnd(3, 'X');
         }
+        
         let ubiLetra = ubiFull.charAt(0);
         let ubiNum = ubiFull.replace(/[^0-9]/g, ''); 
         let ubiCod = ubiLetra + ubiNum;
@@ -235,12 +237,11 @@ function formatearMiles(input) {
     input.value = valor ? new Intl.NumberFormat('de-DE').format(valor) : "";
 }
 
+// Cerrar listas al hacer clic fuera
 document.addEventListener('click', (e) => {
     if (!e.target.closest('.sugerencias-container')) {
-        const ln = document.getElementById('lista_nom');
-        const lu = document.getElementById('lista_ubi');
-        if(ln) ln.style.display = 'none';
-        if(lu) lu.style.display = 'none';
+        document.getElementById('lista_nom').style.display = 'none';
+        document.getElementById('lista_ubi').style.display = 'none';
     }
 });
 </script>
