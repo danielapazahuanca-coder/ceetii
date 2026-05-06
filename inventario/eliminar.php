@@ -19,7 +19,6 @@ $options = [
 $context = stream_context_create($options);
 $result = @file_get_contents($url, false, $context);
 
-// Redirigimos siempre a la lista principal después de intentar borrar
 header("Location: activos.php");
 exit;
 ?>

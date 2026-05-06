@@ -11,6 +11,7 @@ $ubicacion = $_GET['ubicacion'] ?? '';
 
 $ver_resp = isset($_GET['col_resp']) || !isset($_GET['filtrar']);
 $ver_precio = isset($_GET['col_precio']) || !isset($_GET['filtrar']);
+$ver_fecha_c = isset($_GET['col_fecha_c']) || !isset($_GET['filtrar']); // NUEVA
 $ver_fecha = isset($_GET['col_fecha']) || !isset($_GET['filtrar']);
 $ver_obs = isset($_GET['col_obs']) || !isset($_GET['filtrar']);
 
@@ -69,12 +70,13 @@ ob_start();
     <table>
         <thead>
             <tr>
-                <th width="25%">Nombre</th>
+                <th width="20%">Nombre</th>
                 <th width="12%">Código</th>
                 <th width="10%">Estado</th>
                 <?php if($ver_resp): ?> <th>Responsable</th> <?php endif; ?>
                 <?php if($ver_precio): ?> <th>Precio</th> <?php endif; ?>
-                <?php if($ver_fecha): ?> <th>Fecha Registro</th> <?php endif; ?>
+                <?php if($ver_fecha_c): ?> <th>F. Compra</th> <?php endif; ?>
+                <?php if($ver_fecha): ?> <th>F. Registro</th> <?php endif; ?>
                 <?php if($ver_obs): ?> <th>Obs.</th> <?php endif; ?>
             </tr>
         </thead>
@@ -88,6 +90,7 @@ ob_start();
                 <td style="text-align: center;"><?= $txt_estado[$a['estado_id']] ?? 'N/A' ?></td>
                 <?php if($ver_resp): ?> <td><?= htmlspecialchars($a['responsable']) ?></td> <?php endif; ?>
                 <?php if($ver_precio): ?> <td>Bs. <?= number_format($a['precio_compra'], 2) ?></td> <?php endif; ?>
+                <?php if($ver_fecha_c): ?> <td><?= $a['fecha_compra'] ?? 'N/A' ?></td> <?php endif; ?>
                 <?php if($ver_fecha): ?> <td style="font-size: 8px;"><?= $a['fecha_registro'] ?></td> <?php endif; ?>
                 <?php if($ver_obs): ?> <td style="font-size: 8px; font-style: italic;"><?= htmlspecialchars($a['observaciones'] ?? '') ?></td> <?php endif; ?>
             </tr>

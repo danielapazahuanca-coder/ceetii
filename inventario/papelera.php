@@ -23,7 +23,7 @@ include 'header.php';
 <div class="d-flex align-items-center justify-content-center mb-4 p-3 bg-white shadow-sm rounded-3 border-top border-4 border-secondary">
     <div class="text-center">
         <h2 class="mb-0 fw-bold text-secondary">PAPELERA DE RECICLAJE</h2>
-        <p class="text-muted mb-0 small text-uppercase">Activos eliminados del sistema (Auditoría)</p>
+        <p class="text-muted mb-0 small text-uppercase">Activos eliminados del sistema</p>
     </div>
 </div>
 

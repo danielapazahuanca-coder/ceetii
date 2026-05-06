@@ -1,39 +1,31 @@
 <?php
-
 date_default_timezone_set('America/La_Paz');
 
-// Captura de filtros
 $busqueda_texto = $_GET['buscar'] ?? '';
 $filtro_ubicacion = $_GET['ubicacion'] ?? '';
 
-// Lógica de visibilidad de columnas (Sincronizada con los nombres de los checkboxes)
 $ver_resp = isset($_GET['col_resp']) || !isset($_GET['filtrar']);
 $ver_precio = isset($_GET['col_precio']) || !isset($_GET['filtrar']);
 $ver_fecha_compra = isset($_GET['col_fecha_c']) || !isset($_GET['filtrar']);
 $ver_fecha = isset($_GET['col_fecha']) || !isset($_GET['filtrar']);
 $ver_obs = isset($_GET['col_obs']) || !isset($_GET['filtrar']);
 
-// Paginación
 $por_pagina = 10;
 $pagina_actual = isset($_GET['p']) ? (int)$_GET['p'] : 1;
 if ($pagina_actual < 1) $pagina_actual = 1;
 
-// Petición a la API para obtener activos filtrados
 $url = "http://localhost/api_ceti/public/index.php/activos?buscar=" . urlencode($busqueda_texto) . "&ubicacion=" . urlencode($filtro_ubicacion);
 $response = @file_get_contents($url);
 $resultado = json_decode($response, true);
 $todos_los_activos = $resultado['data'] ?? [];
 
-// Invertir para mostrar los últimos registros primero
 $todos_los_activos = array_reverse($todos_los_activos);
 
-// Cálculos de paginación
 $total_activos = count($todos_los_activos);
 $total_paginas = ceil($total_activos / $por_pagina);
 $indice_inicio = ($pagina_actual - 1) * $por_pagina;
 $activos = array_slice($todos_los_activos, $indice_inicio, $por_pagina);
 
-// Obtener ubicaciones únicas para el select del buscador
 $url_base = "http://localhost/api_ceti/public/index.php/activos";
 $res_base = @file_get_contents($url_base);
 $json_base = json_decode($res_base, true);
@@ -100,7 +92,7 @@ include 'header.php';
                 </div>
                 <div class="form-check form-check-inline">
                     <input class="form-check-input" type="checkbox" name="col_fecha_c" id="c_fc" <?= $ver_fecha_compra ? 'checked' : '' ?>>
-                    <label class="form-check-label small text-primary fw-bold" for="c_fc">Fecha Compra</label>
+                    <label class="form-check-label small" for="c_fc">Fecha Compra</label>
                 </div>
                 <div class="form-check form-check-inline">
                     <input class="form-check-input" type="checkbox" name="col_fecha" id="c3" <?= $ver_fecha ? 'checked' : '' ?>>
@@ -130,7 +122,7 @@ include 'header.php';
     </div>
 </div>
 
-<div class="card shadow border-0 overflow-hidden">
+<div id="seccion-tabla" class="card shadow border-0 overflow-hidden">
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0" id="tablaActivos">
             <thead class="table-dark">
@@ -161,14 +153,14 @@ include 'header.php';
                     <?php if($ver_precio): ?> <td class="fw-bold">Bs. <?= number_format($a['precio_compra'] ?? 0, 2) ?></td> <?php endif; ?>
                     
                     <?php if($ver_fecha_compra): ?> 
-                        <td class="text-primary fw-bold">
+                        <td>
                             <?php 
                                 $f_compra = $a['fecha_compra'] ?? null;
                                 if($f_compra && $f_compra !== '0000-00-00' && $f_compra !== '1970-01-01'): 
                                     $ts = strtotime($f_compra);
                                     echo $ts ? date('d/m/Y', $ts) : htmlspecialchars($f_compra);
                                 else: 
-                                    echo '<span class="text-muted fw-normal small">Sin fecha</span>';
+                                    echo '<span class="text-muted small">Sin fecha</span>';
                                 endif; 
                             ?>
                         </td> 
@@ -194,15 +186,15 @@ include 'header.php';
 <nav class="mt-4">
     <ul class="pagination justify-content-center">
         <li class="page-item <?= ($pagina_actual <= 1) ? 'disabled' : '' ?>">
-            <a class="page-link text-dark" href="?p=<?= $pagina_actual - 1 ?>&<?= $url_filtros ?>">Anterior</a>
+            <a class="page-link text-dark" href="?p=<?= $pagina_actual - 1 ?>&<?= $url_filtros ?>#seccion-tabla">Anterior</a>
         </li>
         <?php for($i = 1; $i <= $total_paginas; $i++): ?>
             <li class="page-item <?= ($pagina_actual == $i) ? 'active' : '' ?>">
-                <a class="page-link <?= ($pagina_actual == $i) ? 'bg-danger border-danger text-white' : 'text-dark' ?>" href="?p=<?= $i ?>&<?= $url_filtros ?>"><?= $i ?></a>
+                <a class="page-link <?= ($pagina_actual == $i) ? 'bg-danger border-danger text-white' : 'text-dark' ?>" href="?p=<?= $i ?>&<?= $url_filtros ?>#seccion-tabla"><?= $i ?></a>
             </li>
         <?php endfor; ?>
         <li class="page-item <?= ($pagina_actual >= $total_paginas) ? 'disabled' : '' ?>">
-            <a class="page-link text-dark" href="?p=<?= $pagina_actual + 1 ?>&<?= $url_filtros ?>">Siguiente</a>
+            <a class="page-link text-dark" href="?p=<?= $pagina_actual + 1 ?>&<?= $url_filtros ?>#seccion-tabla">Siguiente</a>
         </li>
     </ul>
 </nav>
@@ -210,16 +202,13 @@ include 'header.php';
 
 <script>
 let ordenDescendente = true; 
-
 function invertirTabla() {
     const tableBody = document.querySelector("#tablaActivos tbody");
     const filas = Array.from(tableBody.querySelectorAll("tr"));
     const btn = document.getElementById("btnOrden");
-
     filas.reverse();
     tableBody.innerHTML = "";
     filas.forEach(f => tableBody.appendChild(f));
-
     ordenDescendente = !ordenDescendente;
     btn.innerHTML = ordenDescendente 
         ? '<span class="material-icons align-middle me-1">sort</span> Antiguos primero' 

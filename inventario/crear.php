@@ -1,15 +1,10 @@
 <?php 
-/**
- * FORMULARIO DE REGISTRO - Sistema de Inventarios CEETII
- * Autor: Brandon Meza (Brand) / David Ramirez
- */
+
 include 'header.php'; 
 
-// 1. Configuración de Zona Horaria para la fecha por defecto
 date_default_timezone_set('America/La_Paz');
 $fecha_hoy = date('Y-m-d');
 
-// 2. Obtener datos de la API para sugerencias y validación de códigos
 $url_api = "http://localhost/api_ceti/public/index.php/activos";
 $res_api = @file_get_contents($url_api);
 $json_api = json_decode($res_api, true);
@@ -17,8 +12,14 @@ $activos_existentes = $json_api['data'] ?? [];
 
 $nombres_unicos = array_unique(array_column($activos_existentes, 'nombre'));
 sort($nombres_unicos);
+
 $ubicaciones_unicas = array_unique(array_column($activos_existentes, 'ubicacion'));
 sort($ubicaciones_unicas);
+
+$responsables_unicos = array_unique(array_column($activos_existentes, 'responsable'));
+$responsables_unicos = array_filter($responsables_unicos); 
+sort($responsables_unicos);
+
 $codigos_existentes = array_column($activos_existentes, 'codigo_activo');
 ?>
 
@@ -51,7 +52,7 @@ $codigos_existentes = array_column($activos_existentes, 'codigo_activo');
                     
                     <div class="mb-3 sugerencias-container">
                         <label class="form-label fw-bold small text-secondary">Nombre del Activo</label>
-                        <input type="text" id="nombre_input" class="form-control form-control-sm" placeholder="Ej: Laptop Nitro..." required autofocus oninput="validarTexto(this, 'nombre')">
+                        <input type="text" id="nombre_input" class="form-control form-control-sm" placeholder="Ej: Laptop..." required autofocus oninput="validarTexto(this, 'solo_letras')" maxlength="25">
                         <input type="hidden" name="nombre" id="nombre_real">
                         <div id="lista_nom" class="lista-desplegable">
                             <?php foreach($nombres_unicos as $nom): ?>
@@ -62,7 +63,7 @@ $codigos_existentes = array_column($activos_existentes, 'codigo_activo');
 
                     <div class="mb-3 sugerencias-container">
                         <label class="form-label fw-bold small text-secondary">Ubicación</label>
-                        <input type="text" id="ubicacion_input" class="form-control form-control-sm" placeholder="Ej: Aula 10..." required oninput="validarTexto(this, 'numeros')">
+                        <input type="text" id="ubicacion_input" class="form-control form-control-sm" placeholder="Ej: Aula 10..." required oninput="validarTexto(this, 'numeros')" maxlength="20">
                         <input type="hidden" name="ubicacion" id="ubicacion_real">
                         <div id="lista_ubi" class="lista-desplegable">
                             <?php foreach($ubicaciones_unicas as $ubi): ?>
@@ -97,14 +98,20 @@ $codigos_existentes = array_column($activos_existentes, 'codigo_activo');
                         </select>
                     </div>
 
-                    <div class="mb-3">
+                    <div class="mb-3 sugerencias-container">
                         <label class="form-label fw-bold small text-secondary">Responsable / Asignado</label>
-                        <input type="text" name="responsable" id="responsable" class="form-control form-control-sm" placeholder="Nombre de la persona..." oninput="validarTexto(this, 'letras')">
+                        <input type="text" id="responsable_input" class="form-control form-control-sm" placeholder="Nombre..." oninput="validarTexto(this, 'letras')" maxlength="25">
+                        <input type="hidden" name="responsable" id="responsable_real">
+                        <div id="lista_resp" class="lista-desplegable">
+                            <?php foreach($responsables_unicos as $resp): ?>
+                                <div class="opcion-item" onclick="seleccionar('responsable', '<?= addslashes(htmlspecialchars($resp)) ?>')"><?= htmlspecialchars($resp) ?></div>
+                            <?php endforeach; ?>
+                        </div>
                     </div>
 
                     <div class="mb-4">
                         <label class="form-label fw-bold small text-secondary">Observaciones</label>
-                        <textarea name="observaciones" id="observaciones" class="form-control form-control-sm" rows="2" placeholder="Detalles adicionales..." oninput="validarTexto(this, 'completo')"></textarea>
+                        <textarea name="observaciones" id="observaciones" class="form-control form-control-sm" rows="2" placeholder="Detalles..." oninput="validarTexto(this, 'observacion_format')" maxlength="50"></textarea>
                     </div>
 
                     <div class="d-grid gap-2">
@@ -118,63 +125,48 @@ $codigos_existentes = array_column($activos_existentes, 'codigo_activo');
 </div>
 
 <script>
-// Lista de códigos para evitar duplicados en el correlativo local
 const codigosDB = <?= json_encode($codigos_existentes) ?>;
 
 function confirmarGuardado() {
     const nombre = document.getElementById('nombre_real').value;
-    const codigo = document.getElementById('codigo_preview').value;
     const ubicacion = document.getElementById('ubicacion_real').value;
-
     if(!nombre || !ubicacion) {
         Swal.fire('Atención', 'Nombre y Ubicación son obligatorios.', 'warning');
         return;
     }
-
-    Swal.fire({
-        title: '¿Confirmar Registro?',
-        html: `<div class='text-start small border-top pt-2 mt-2'>
-                <b>Activo:</b> ${nombre}<br>
-                <b>Código:</b> ${codigo}<br>
-                <b>Ubicación:</b> ${ubicacion}
-               </div>`,
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#8d191d',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Sí, registrar',
-        cancelButtonText: 'Cancelar'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            document.getElementById('formCrear').submit();
-        }
-    });
+    document.getElementById('formCrear').submit();
 }
 
 function validarTexto(input, tipo) {
     let regex;
-    if (tipo === 'completo') regex = /[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ .,-]/g;
-    else if (tipo === 'numeros') regex = /[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ ]/g;
-    else if (tipo === 'nombre') regex = /[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ ,-]/g;
-    else regex = /[^a-zA-ZáéíóúÁÉÍÓÚñÑ ]/g;
+    if (tipo === 'letras_coma' || tipo === 'observacion_format') regex = /[^a-zA-ZáéíóúÁÉÍÓÚñÑ ,.]/g;
+    else if (tipo === 'numeros') regex = /[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ ]/g; 
+    else if (tipo === 'solo_letras' || tipo === 'letras') regex = /[^a-zA-ZáéíóúÁÉÍÓÚñÑ ]/g; 
     
     let valor = input.value.replace(regex, '').replace(/\s+/g, ' ');
 
-    // Auto-capitalización inteligente
-    const excepciones = ['de', 'del', 'la', 'las', 'el', 'los', 'con', 'en', 'y', 'o'];
-    let palabras = valor.toLowerCase().split(' ');
-    for (let i = 0; i < palabras.length; i++) {
-        if (i === 0 || !excepciones.includes(palabras[i])) {
-            palabras[i] = palabras[i].charAt(0).toUpperCase() + palabras[i].slice(1);
+    if (tipo === 'observacion_format') {
+        if (valor.length > 0) {
+            valor = valor.charAt(0).toUpperCase() + valor.slice(1).toLowerCase();
         }
+    } else {
+        const excepciones = ['de', 'del', 'la', 'las', 'el', 'los', 'con', 'en', 'y', 'o'];
+        let palabras = valor.toLowerCase().split(' ');
+        for (let i = 0; i < palabras.length; i++) {
+            if (i === 0 || !excepciones.includes(palabras[i])) {
+                palabras[i] = palabras[i].charAt(0).toUpperCase() + palabras[i].slice(1);
+            }
+        }
+        valor = palabras.join(' ');
     }
     
-    input.value = palabras.join(' ');
+    input.value = valor;
+    
     const idReal = input.id.replace('_input', '_real');
     const hidden = document.getElementById(idReal);
     if(hidden) {
-        hidden.value = input.value;
-        generarCodigo();
+        hidden.value = valor;
+        if(input.id !== 'responsable_input') generarCodigo();
     }
 }
 
@@ -191,19 +183,23 @@ function configurarBuscador(inputId, listaId, realId) {
             item.style.display = item.textContent.toLowerCase().includes(filtro) ? 'block' : 'none';
         });
         hidden.value = this.value;
-        generarCodigo();
     });
-    input.addEventListener('click', () => { if(input.value.length > 0) lista.style.display = 'block'; });
+
+    input.addEventListener('click', function() {
+        if(this.value.length > 0) lista.style.display = 'block';
+    });
 }
 
 configurarBuscador('nombre_input', 'lista_nom', 'nombre_real');
 configurarBuscador('ubicacion_input', 'lista_ubi', 'ubicacion_real');
+configurarBuscador('responsable_input', 'lista_resp', 'responsable_real');
 
 function seleccionar(tipo, valor) {
     document.getElementById(tipo + '_input').value = valor;
     document.getElementById(tipo + '_real').value = valor;
-    document.getElementById('lista_' + (tipo === 'nombre' ? 'nom' : 'ubi')).style.display = 'none';
-    generarCodigo();
+    const mapaListas = { 'nombre': 'lista_nom', 'ubicacion': 'lista_ubi', 'responsable': 'lista_resp' };
+    document.getElementById(mapaListas[tipo]).style.display = 'none';
+    if(tipo !== 'responsable') generarCodigo();
 }
 
 function generarCodigo() {
@@ -219,14 +215,18 @@ function generarCodigo() {
             nomCod = nomFull.length >= 3 ? nomFull.substring(0, 2) + nomFull.slice(-1) : nomFull.padEnd(3, 'X');
         }
         
-        let ubiLetra = ubiFull.charAt(0);
+        let ubiCod = "";
         let ubiNum = ubiFull.replace(/[^0-9]/g, ''); 
-        let ubiCod = ubiLetra + ubiNum;
+        
+        if (ubiNum !== "") {
+            ubiCod = ubiFull.substring(0, 2) + ubiNum;
+        } else {
+            ubiCod = ubiFull.substring(0, 3);
+        }
+
         const prefijo = ubiCod + "-" + nomCod;
         const correlativo = codigosDB.filter(c => c.startsWith(prefijo)).length + 1;
         document.getElementById('codigo_preview').value = prefijo + "-" + correlativo.toString().padStart(2, '0');
-    } else {
-        document.getElementById('codigo_preview').value = '';
     }
 }
 
@@ -237,11 +237,11 @@ function formatearMiles(input) {
     input.value = valor ? new Intl.NumberFormat('de-DE').format(valor) : "";
 }
 
-// Cerrar listas al hacer clic fuera
 document.addEventListener('click', (e) => {
     if (!e.target.closest('.sugerencias-container')) {
         document.getElementById('lista_nom').style.display = 'none';
         document.getElementById('lista_ubi').style.display = 'none';
+        document.getElementById('lista_resp').style.display = 'none';
     }
 });
 </script>

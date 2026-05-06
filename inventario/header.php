@@ -23,69 +23,57 @@
             padding: 0;
         }
 
-        /* NAVBAR */
         .navbar-ceetii { 
             background-color: var(--rojo-elegante) !important;
-            padding: 10px 0;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 8px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
         }
 
-        .navbar-brand {
-            font-weight: 500;
-            letter-spacing: 1px;
-            font-size: 1rem;
+        .btn-exit-system {
+            background-color: rgba(255,255,255,0.1);
+            color: white !important;
+            border-radius: 6px;
+            padding: 5px 12px !important;
+            transition: all 0.3s;
+            border: 1px solid rgba(255,255,255,0.2);
             text-transform: uppercase;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .btn-exit-system:hover {
+            background-color: white;
+            color: var(--rojo-elegante) !important;
         }
 
         .nav-link {
             transition: all 0.3s ease;
-            margin: 0 5px;
-        }
-
-        /* Tarjetas y Tablas */
-        .card-custom, .table-container, .card {
-            background-color: #ffffff !important;
-            border: 1px solid rgba(0,0,0,0.05) !important;
-            border-radius: 10px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.04) !important;
-        }
-
-        .table thead th {
-            background-color: #343a40 !important;
-            color: #ffffff !important;
-            font-weight: 500;
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            letter-spacing: 1px;
-            padding: 15px;
-            border: none;
-        }
-
-        .btn-ceetii {
-            background-color: var(--rojo-elegante);
-            color: white;
-            border: none;
-            padding: 8px 20px;
+            margin: 0 3px;
             border-radius: 6px;
-            transition: all 0.3s ease;
+        }
+        .nav-link:hover {
+            background-color: rgba(255,255,255,0.1);
         }
 
-        .pagination .page-link {
-            color: var(--rojo-elegante) !important;
-            border: 1px solid #dee2e6;
-            transition: all 0.3s ease;
+        .btn-action {
+            width: 32px;
+            height: 32px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+            text-decoration: none;
         }
+        .btn-edit { color: #0d6efd; background: rgba(13, 110, 253, 0.1); }
+        .btn-edit:hover { background: #0d6efd; color: white; }
+        .btn-delete { color: #dc3545; background: rgba(220, 53, 69, 0.1); }
+        .btn-delete:hover { background: #dc3545; color: white; }
 
-        .pagination .page-item.active .page-link {
-            background-color: var(--rojo-elegante) !important;
-            border-color: var(--rojo-elegante) !important;
-            color: white !important;
-        }
-
-        .pagination .page-link:hover {
-            background-color: #f8d7da !important;
-            color: var(--rojo-elegante) !important;
-            border-color: var(--rojo-elegante);
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
     </style>
 </head>
@@ -93,9 +81,9 @@
 
 <nav class="navbar navbar-expand-lg navbar-dark navbar-ceetii mb-4">
     <div class="container">
-        <a class="navbar-brand d-flex align-items-center" href="../index.php">
-            <span class="material-icons me-2" style="font-size: 1.2rem;">arrow_back</span>
-            VOLVER AL SISTEMA
+        <a class="navbar-brand btn-exit-system d-flex align-items-center" href="../index.php">
+            <span class="material-icons me-1" style="font-size: 1.1rem;">grid_view</span>
+            Sistema Central
         </a>
         
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -103,18 +91,23 @@
         </button>
 
         <div class="collapse navbar-collapse" id="navbarNav">
-            <div class="navbar-nav ms-auto">
+            <div class="navbar-nav ms-auto align-items-center">
                 <a class="nav-link active small d-flex align-items-center" href="activos.php">
-                    <span class="material-icons me-1" style="font-size: 1.1rem;">inventory_2</span> Inicio
+                    <span class="material-icons me-1" style="font-size: 1.2rem;">inventory_2</span> 
+                    Lista de Activos
                 </a>
                 
-                <a class="nav-link small d-flex align-items-center text-white fw-bold" href="prestamos.php">
-                    <span class="material-icons me-1" style="font-size: 1.1rem;">handshake</span> PRÉSTAMOS
+                <a class="nav-link small d-flex align-items-center text-white" href="prestamos.php">
+                    <span class="material-icons me-1" style="font-size: 1.2rem;">calendar_month</span> 
+                    Préstamos
                 </a>
 
-                <a class="nav-link small text-warning d-flex align-items-center" href="papelera.php">
-                    <span class="material-icons me-1" style="font-size: 1.1rem;">delete_outline</span> Papelera
-                </a>
+                <div class="ms-lg-3 ps-lg-3 border-start border-light border-opacity-25">
+                    <a class="nav-link small text-warning d-flex align-items-center" href="papelera.php">
+                        <span class="material-icons me-1" style="font-size: 1.2rem;">delete_outline</span> 
+                        Papelera
+                    </a>
+                </div>
             </div>
         </div>
     </div>
