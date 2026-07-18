@@ -1,4 +1,10 @@
 <?php
+session_start();
+if (!isset($_SESSION['role_id']) || !in_array($_SESSION['role_id'], [1, 2], true)) {
+    header("Location: ../login.php");
+    exit();
+}
+require_once __DIR__ . '/config_api.php';
 error_reporting(0);
 // zona horaria
 date_default_timezone_set('America/La_Paz');
@@ -21,7 +27,7 @@ $ver_fecha = isset($_GET['col_fecha']) || !isset($_GET['filtrar']);
 $ver_obs = isset($_GET['col_obs']) || !isset($_GET['filtrar']);
 
 $params = http_build_query(['buscar' => $busqueda, 'ubicacion' => $ubicacion]);
-$url = "http://localhost/api_ceti/public/index.php/activos?" . $params;
+$url = API_BASE_URL . "/activos?" . $params;
 $response = @file_get_contents($url);
 $resultado = json_decode($response, true);
 $activos = $resultado['data'] ?? [];

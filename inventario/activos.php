@@ -1,4 +1,10 @@
 <?php
+session_start();
+if (!isset($_SESSION['role_id']) || !in_array($_SESSION['role_id'], [1, 2], true)) {
+    header("Location: ../login.php");
+    exit();
+}
+require_once __DIR__ . '/config_api.php';
 date_default_timezone_set('America/La_Paz');
 
 $busqueda_texto = $_GET['buscar'] ?? '';
@@ -14,7 +20,7 @@ $por_pagina = 10;
 $pagina_actual = isset($_GET['p']) ? (int)$_GET['p'] : 1;
 if ($pagina_actual < 1) $pagina_actual = 1;
 
-$url = "http://localhost/api_ceti/public/index.php/activos?buscar=" . urlencode($busqueda_texto) . "&ubicacion=" . urlencode($filtro_ubicacion);
+$url = API_BASE_URL . "/activos?buscar=" . urlencode($busqueda_texto) . "&ubicacion=" . urlencode($filtro_ubicacion);
 $response = @file_get_contents($url);
 $resultado = json_decode($response, true);
 $todos_los_activos = $resultado['data'] ?? [];
@@ -26,7 +32,7 @@ $total_paginas = ceil($total_activos / $por_pagina);
 $indice_inicio = ($pagina_actual - 1) * $por_pagina;
 $activos = array_slice($todos_los_activos, $indice_inicio, $por_pagina);
 
-$url_base = "http://localhost/api_ceti/public/index.php/activos";
+$url_base = API_BASE_URL . "/activos";
 $res_base = @file_get_contents($url_base);
 $json_base = json_decode($res_base, true);
 $todas_las_ubicaciones = array_unique(array_column($json_base['data'] ?? [], 'ubicacion'));

@@ -1,8 +1,14 @@
 <?php
+session_start();
+if (!isset($_SESSION['role_id']) || !in_array($_SESSION['role_id'], [1, 2], true)) {
+    header("Location: ../login.php");
+    exit();
+}
+require_once __DIR__ . '/config_api.php';
 include 'header.php'; 
 
-$url_activos = "http://localhost/api_ceti/public/index.php/activos";
-$url_prestamos = "http://localhost/api_ceti/public/index.php/prestamos";
+$url_activos = API_BASE_URL . "/activos";
+$url_prestamos = API_BASE_URL . "/prestamos";
 
 $res_activos = @file_get_contents($url_activos);
 $activos = json_decode($res_activos, true)['data'] ?? [];

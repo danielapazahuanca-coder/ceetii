@@ -1,11 +1,17 @@
 <?php 
+session_start();
+if (!isset($_SESSION['role_id']) || !in_array($_SESSION['role_id'], [1, 2], true)) {
+    header("Location: ../login.php");
+    exit();
+}
+require_once __DIR__ . '/config_api.php';
 
 include 'header.php'; 
 
 date_default_timezone_set('America/La_Paz');
 $fecha_hoy = date('Y-m-d');
 
-$url_api = "http://localhost/api_ceti/public/index.php/activos";
+$url_api = API_BASE_URL . "/activos";
 $res_api = @file_get_contents($url_api);
 $json_api = json_decode($res_api, true);
 $activos_existentes = $json_api['data'] ?? [];

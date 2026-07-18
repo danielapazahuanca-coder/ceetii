@@ -1,8 +1,14 @@
 <?php
+session_start();
+if (!isset($_SESSION['role_id']) || !in_array($_SESSION['role_id'], [1, 2], true)) {
+    header("Location: ../login.php");
+    exit();
+}
+require_once __DIR__ . '/config_api.php';
 $busqueda_texto = $_GET['buscar'] ?? '';
 $filtro_ubicacion = $_GET['ubicacion'] ?? '';
 
-$url = "http://localhost/api_ceti/public/index.php/activos?papelera=1&buscar=" . urlencode($busqueda_texto) . "&ubicacion=" . urlencode($filtro_ubicacion);
+$url = API_BASE_URL . "/activos?papelera=1&buscar=" . urlencode($busqueda_texto) . "&ubicacion=" . urlencode($filtro_ubicacion);
 $response = @file_get_contents($url);
 $resultado = json_decode($response, true);
 
