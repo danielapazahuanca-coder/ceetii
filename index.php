@@ -93,7 +93,6 @@ include("php/header.php");
 
                                 <div class="col-sm-2">
                                     <!-- <button id="GenerarPDF" class="btn btn-default">Buscar</button> -->
-                                    
                                     <!-- <a href="ingresos.php?action=buscar" class="btn btn-primary "><span class="glyphicon .glyphicon-search">Buscar</span></a> -->
                                     <button type="submit" name="buscar" id="buscar" class="btn btn-primary">Ver Saldos </button>
                                     
@@ -194,8 +193,7 @@ include("php/header.php");
                                 <h5>Reportes</h5>
                             </a>
                         </div>
-                    </div>
-                  
+                    </div>                 
 
                 </div>
                 <!-- /. ROW  -->
