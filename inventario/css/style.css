@@ -1,0 +1,90 @@
+/* css/style.css */
+:root {
+    --rojo-elegante: #8d191d; 
+    --gris-pantalla: #f0f2f5;
+    --texto-oscuro: #1a202c;
+    
+    /* MODIFICADOS PARA EL SIDEBAR CLARO */
+    --sidebar-bg: #ffffff;          /* Fondo blanco */
+    --sidebar-hover: #fbebeb;       /* Rojo clarito para el hover */
+    --sidebar-active-bg: #f9d5d5;   /* Rojo clarito un poco más marcado al seleccionar */
+    --sidebar-text: #4a5568;        /* Texto oscuro para que se lea sobre el blanco */
+    --sidebar-text-muted: #718096;  /* Texto de etiquetas más suave */
+}
+
+body { 
+    background-color: var(--gris-pantalla); 
+    font-family: 'Inter', sans-serif;
+    color: var(--texto-oscuro);
+    margin: 0; padding: 0;
+}
+
+.navbar-top {
+    position: fixed; top: 0; left: 0; right: 0; height: 60px;
+    background-color: var(--rojo-elegante); z-index: 1030; 
+    display: flex; align-items: center; justify-content: space-between;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15); padding: 0 20px;
+}
+.navbar-top .brand { color: #fff; font-weight: 700; text-decoration: none; display: flex; align-items: center; }
+.navbar-top .user-info { color: rgba(255, 255, 255, 0.9); font-size: 13px; display: flex; align-items: center; gap: 10px; }
+.navbar-top .user-info b { color: #fff; font-weight: 600; }
+
+.btn-exit-system {
+    background-color: rgba(255,255,255,0.15); color: white !important; border-radius: 6px;
+    padding: 4px 12px !important; transition: all 0.3s; border: 1px solid rgba(255,255,255,0.25);
+    text-transform: uppercase; font-size: 0.75rem; font-weight: 600; display: inline-flex; align-items: center; text-decoration: none;
+}
+.btn-exit-system:hover { background-color: white; color: var(--rojo-elegante) !important; }
+
+/* AJUSTES DEL SIDEBAR */
+.sidebar {
+    position: fixed; top: 60px; left: 0; bottom: 0; width: 260px;
+    background: var(--sidebar-bg); padding-top: 15px; z-index: 1000; overflow-y: auto;
+    border-right: 1px solid #e2e8f0; /* Borde sutil gris en lugar de oscuro */
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05); /* Sombra suave */
+}
+
+.sidebar .nav-label { 
+    color: var(--sidebar-text-muted); 
+    font-size: 11px; text-transform: uppercase; font-weight: 700; padding: 14px 24px 6px; letter-spacing: 0.8px; 
+}
+
+.sidebar a { 
+    display: flex; align-items: center; padding: 11px 24px; font-size: 14px; 
+    color: var(--sidebar-text); text-decoration: none; transition: all 0.15s ease-in-out; gap: 12px; font-weight: 500; 
+}
+
+.sidebar a .material-icons { 
+    color: var(--sidebar-text-muted); /* Iconos adaptados al fondo claro */
+    font-size: 1.25rem; 
+}
+
+/* Efecto Hover (Pasar el mouse) */
+.sidebar a:hover { 
+    background: var(--sidebar-hover); 
+    color: var(--rojo-elegante); 
+}
+.sidebar a:hover .material-icons { 
+    color: var(--rojo-elegante); 
+}
+
+/* Estado Activo (Seleccionado) */
+.sidebar a.active { 
+    background-color: var(--sidebar-active-bg); 
+    color: var(--rojo-elegante); 
+    font-weight: 600; 
+    border-left: 6px solid var(--rojo-elegante); 
+    padding-left: 18px; 
+    box-shadow: inset 2px 0 5px rgba(0,0,0,0.05); 
+}
+.sidebar a.active .material-icons { 
+    color: var(--rojo-elegante); 
+}
+
+.sidebar .nav-divider { 
+    border-top: 1px solid #edf2f7; /* Separador claro */
+    margin: 12px 0; 
+}
+
+.main-content { margin-left: 260px; padding: 35px; margin-top: 60px; min-height: calc(100vh - 60px); }
+.card, .bg-white.shadow-sm { background-color: #ffffff !important; border: 1px solid #cbd5e0 !important; border-radius: 12px !important; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05) !important; }
